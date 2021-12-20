@@ -429,9 +429,27 @@ def update_plots(state_selected, country_selected, n):
                 mode='markers'
             )
             state_report = html.Div([
-                html.H1("Vaccinated (1+ Dose): {pct}%".format(pct=total_vax_pct if total_vax_pct > 0.0 else '--'), style={'margin':'10px'}),
-                html.H1("Fully Vaccinated: {pct}%".format(pct=full_vax_pct if full_vax_pct > 0.0 else '--'), style={'margin':'10px'}),
-                html.H1("Boosted: {pct}%".format(pct=boosted_pct if boosted_pct>0.0 else "--"), style={'margin-bottom':'0px'})
+                html.H1(
+                    children=[
+                        html.Strong("Vaccinated (1+ Dose): "), 
+                        html.Span("{pct}%".format(pct=total_vax_pct if total_vax_pct > 0.0 else '--'))
+                    ], 
+                    style={'margin':'10px'}
+                ),
+                html.H1(
+                    children=[
+                        html.Strong("Fully Vaccinated: "), 
+                        html.Span("{pct}%".format(pct=full_vax_pct if full_vax_pct > 0.0 else '--'))
+                    ], 
+                    style={'margin':'10px'}
+                ),
+                html.H1(
+                    children=[
+                        html.Strong("Boosted: "), 
+                        html.Span("{pct}%".format(pct=boosted_pct if boosted_pct>0.0 else "--"))
+                    ], 
+                    style={'margin-bottom':'0px'}
+                )
             ], style={'border':'solid black 1px', 'border-radius':'25px', 'text-align':'center', 'top':'50%', 'transform':'translateY(50%)'})
 
     plot1={
