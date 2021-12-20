@@ -92,7 +92,7 @@ def update_data():
     df_global.fillna(0, inplace=True)
     # df_global = df_global[df_global['new_cases']!= 0]
     # df_global = df_global[df_global['new_deaths']!= 0]
-    
+    # df_global = df_global.loc[df_global['location'].isin(global_pop['name'].unique().tolist())]
 
     df_us = pd.read_csv('https://api.covidactnow.org/v2/states.timeseries.csv?apiKey=024d1309069f4e0a88b5afa505e9f470')
     df_us.fillna(0, inplace=True)
@@ -264,9 +264,9 @@ app.layout = html.Div([
             dcc.Loading(
                 id="loading-report",
                 type="dot",
-                children = html.Div(id='state-report', style={'text-align': 'center'}),
+                children = html.Div(id='state-report', style={'text-align':'center', 'width':'auto'}),
             )
-        ], className="six columns"),
+        ], className="six columns", style={'display':'flex', 'justify-content':'center'}),
     ], className="row", style={'margin-top': '35px', 'margin-bottom':'10px'}),
     html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election."),
     html.Div(id='time-value')
@@ -296,7 +296,7 @@ def update_plots(state_selected, country_selected, n):
         df = df_us[df_us['state'] == us_state_abbrev[state_selected]]
         df['newCases'] = df['actuals.newCases']
         df['newDeaths'] = df['actuals.newDeaths']
-        pop=int(us_pop[us_pop['State']==state_selected].Pop)
+        #pop=int(us_pop[us_pop['State']==state_selected].Pop)
 
         df['cases_smoothed'] = df['actuals.newCases'].rolling(7).mean()
         df['deaths_smoothed'] = df['actuals.newDeaths'].rolling(7).mean()
@@ -335,11 +335,11 @@ def update_plots(state_selected, country_selected, n):
             '<b>Deaths</b>: %{y:.2f}',
             text=df_county['county']
         )
-        trace6=go.Bar(
-            x=df['date'],
-            y=pd.to_numeric(df['actuals.newCases'])/(pop/100000),
-            name='Cases per 100k'
-        )
+        # trace6=go.Bar(
+        #     x=df['date'],
+        #     y=pd.to_numeric(df['actuals.newCases'])/(pop/100000),
+        #     name='Cases per 100k'
+        # )
         trace7=go.Scatter(
             x=df_county['VaxPct'],
             y=df_county['curve_fit'],
@@ -348,9 +348,30 @@ def update_plots(state_selected, country_selected, n):
         state_url = "https://covidactnow.org/embed/us/" + us_state_abbrev[state_selected].lower()
         state_report = html.Iframe(src=state_url, height="370", width="350", style={'framBorder':'0'})
     else:
-        df = df_global[df_global['location']==country_selected]
+        df = df_global.loc[df_global['location']==country_selected].reset_index()
 
-        pop = int(global_pop[global_pop['name']==country_selected].pop2020)
+        pop = int(df['population'].iloc[-1])
+
+        full_vax_col = df['people_fully_vaccinated']
+        full_vax = 0
+        full_vax_pct = 0
+        if full_vax_col[full_vax_col != 0].shape[0] != 0:
+            full_vax = int(full_vax_col[full_vax_col != 0].iloc[-1])
+            full_vax_pct = round((full_vax/pop)*100, 2)
+
+        total_vax_col = df['people_vaccinated']
+        total_vax = 0
+        total_vax_pct = 0
+        if total_vax_col[total_vax_col != 0].shape[0] != 0:
+            total_vax = int(total_vax_col[total_vax_col != 0].iloc[-1])
+            total_vax_pct = round((total_vax/pop)*100, 2)
+
+        boosted_col = df['total_boosters']
+        boosted = 0
+        boosted_pct = 0
+        if boosted_col[boosted_col != 0].shape[0] != 0:
+            boosted = int(boosted_col[boosted_col != 0].iloc[-1])
+            boosted_pct = round((boosted/pop)*100, 2)
 
         df['cases_smoothed'] = df.new_cases.rolling(7).mean()
         df['deaths_smoothed'] = df.new_deaths.rolling(7).mean()
@@ -389,11 +410,11 @@ def update_plots(state_selected, country_selected, n):
             '<b>Deaths</b>: %{y:.2f}',
             text=df_state['state']
         )
-        trace6=go.Bar(
-            x=df['date'],
-            y=pd.to_numeric(df['new_cases'])/(pop/100000),
-            name='Cases per 100k'
-        )
+        # trace6=go.Bar(
+        #     x=df['date'],
+        #     y=pd.to_numeric(df['new_cases'])/(pop/100000),
+        #     name='Cases per 100k'
+        # )
         trace7=go.Scatter(
             x=df_state['VaxPct'],
             y=df_state['curve_fit'],
@@ -407,7 +428,11 @@ def update_plots(state_selected, country_selected, n):
                 y=df['new_cases'],
                 mode='markers'
             )
-            state_report = None
+            state_report = html.Div([
+                html.H1("Vaccinated (1+ Dose): {pct}%".format(pct=total_vax_pct if total_vax_pct > 0.0 else '--'), style={'margin':'10px'}),
+                html.H1("Fully Vaccinated: {pct}%".format(pct=full_vax_pct if full_vax_pct > 0.0 else '--'), style={'margin':'10px'}),
+                html.H1("Boosted: {pct}%".format(pct=boosted_pct if boosted_pct>0.0 else "--"), style={'margin-bottom':'0px'})
+            ], style={'border':'solid black 1px', 'border-radius':'25px', 'text-align':'center', 'top':'50%', 'transform':'translateY(50%)'})
 
     plot1={
         'data':[trace1],
