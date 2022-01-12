@@ -304,6 +304,9 @@ def update_plots(state_selected, country_selected, n):
         df_county = get_county_data(state_selected)
         df_county = df_county.loc[df_county['VaxPct'] > 0]
 
+        if(df['newCases'].iloc[-1] == 0.0):
+            df = df.iloc[:-1]
+
         trace1=go.Bar(
             x=df['date'],
             y=df['actuals.newCases'],
