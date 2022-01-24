@@ -167,6 +167,12 @@ def get_county_data(state):
     df_new.sort_values(by='VaxPct', inplace=True)
     df_new.dropna(inplace=True)
     
+    if df_new['VaxPct'].size == 0:
+        df_new['VaxPct'] = 0
+        df_new['deaths_per_100k'] = 0
+        df_new['curve_fit'] = 0
+        return df_new
+    
     model = np.poly1d(np.polyfit(df_new['VaxPct'], df_new['deaths_per_100k'], 3))
     df_new['curve_fit'] = model(df_new['VaxPct'])
     
@@ -523,7 +529,8 @@ def update_plots(state_selected, country_selected, n):
     }
     """
     if (country_selected == "United States"):
-        plot3['layout']['yaxis'].update(range=[0,1.1*max(plot3['data'][0].y)])
+        if plot3['data'][0].y.size > 0:
+            plot3['layout']['yaxis'].update(range=[0,1.1*max(plot3['data'][0].y)])
         return plot1, plot2, plot3, state_report
     else:
         return plot1, plot2, plot4, state_report
