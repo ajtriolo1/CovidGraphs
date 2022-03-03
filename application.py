@@ -1,13 +1,14 @@
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
+# import dash
+# import dash_core_components as dcc
+# import dash_html_components as html
 import datetime as dt
-from dash.dependencies import Input, Output
+# from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.graph_objs as go
 from pytz import timezone
 from urllib.request import Request, urlopen
 import numpy as np
+from dash import Dash, dcc, html, Input, Output
 
 us_state_abbrev = {
     'Alabama': 'AL',
@@ -70,7 +71,7 @@ us_state_abbrev = {
 
 abbrev_us_state = dict(map(reversed, us_state_abbrev.items()))
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', 'dropdown.css']
-app = dash.Dash(
+app = Dash(
     __name__,
     external_stylesheets=external_stylesheets
 )
