@@ -10,4 +10,4 @@ OWID - [https://ourworldindata.org/coronavirus](https://ourworldindata.org/coron
 
 Covid Tracking Project - [https://covidtracking.com/](https://covidtracking.com/)
 
-The website is hosted by AWS, and can be found at [covid.thetriolos.com](http://covid.thetriolos.com/).
+The website is hosted on Heroku, and can be found at [covid.thetriolos.com](http://covid.thetriolos.com/).
