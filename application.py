@@ -69,7 +69,7 @@ us_state_abbrev = {
 }
 
 abbrev_us_state = dict(map(reversed, us_state_abbrev.items()))
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', 'dropdown.css']
 app = dash.Dash(
     __name__,
     external_stylesheets=external_stylesheets
@@ -90,9 +90,6 @@ def update_data():
     df_global.loc[df_global['new_cases'] < 0, ['new_cases']] = '0'
     df_global.loc[df_global['new_deaths'] < 0, ['new_deaths']] = '0'
     df_global.fillna(0, inplace=True)
-    # df_global = df_global[df_global['new_cases']!= 0]
-    # df_global = df_global[df_global['new_deaths']!= 0]
-    # df_global = df_global.loc[df_global['location'].isin(global_pop['name'].unique().tolist())]
 
     df_us = pd.read_csv('https://api.covidactnow.org/v2/states.timeseries.csv?apiKey=024d1309069f4e0a88b5afa505e9f470')
     df_us.fillna(0, inplace=True)
@@ -226,7 +223,7 @@ app.layout = html.Div([
       n_intervals=0
     ),
     html.Div([
-        html.Label('Country'),
+        html.Label('Country', style={'color':'#fff'}),
         dcc.Dropdown(
             id='country-selector',
             options=[{'label': i, 'value': i} for i in sorted_countries],
@@ -234,7 +231,7 @@ app.layout = html.Div([
         )
     ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
     html.Div([
-        html.Label('State'),
+        html.Label('State', style={'color':'#fff'}),
         dcc.Dropdown(
             id='state-selector',
             options=[{'label': i, 'value': i} for i in sorted_states],
@@ -245,14 +242,14 @@ app.layout = html.Div([
         html.Div([
             dcc.Loading(
                 id="loading-cases",
-                type="graph",
+                type="circle",
                 children=dcc.Graph(id='cases-vs-days-lin')
             )
         ], className="six columns"),
         html.Div([
             dcc.Loading(
                 id="loading-deaths",
-                type="graph",
+                type="circle",
                 children=dcc.Graph(id='deaths-vs-days'),
             )
         ], className="six columns")
@@ -262,7 +259,7 @@ app.layout = html.Div([
         html.Div([
             dcc.Loading(
                 id="loading-vax",
-                type="graph",
+                type="circle",
                 children=dcc.Graph(id='vax-vs-deaths'),
             )
         ], className="six columns"),
@@ -274,9 +271,9 @@ app.layout = html.Div([
             )
         ], className="six columns", style={'display':'flex', 'justify-content':'center'}),
     ], className="row", style={'margin-top': '35px', 'margin-bottom':'10px'}),
-    html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election."),
-    html.Div(id='time-value')
-])
+    html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election.", style={'color':'#9b9b9b'}),
+    html.Div(id='time-value', style={'color':'#9b9b9b'})
+], style={'background-color':'#121212'})
 
 @app.callback(
     Output('time-value', 'children'),
@@ -302,7 +299,6 @@ def update_plots(state_selected, country_selected, n):
         df = df_us[df_us['state'] == us_state_abbrev[state_selected]]
         df['newCases'] = df['actuals.newCases']
         df['newDeaths'] = df['actuals.newDeaths']
-        #pop=int(us_pop[us_pop['State']==state_selected].Pop)
 
         df['cases_smoothed'] = df['actuals.newCases'].rolling(7).mean()
         df['deaths_smoothed'] = df['actuals.newDeaths'].rolling(7).mean()
@@ -355,7 +351,7 @@ def update_plots(state_selected, country_selected, n):
             mode='lines'
         )
         state_url = "https://covidactnow.org/embed/us/" + us_state_abbrev[state_selected].lower()
-        state_report = html.Iframe(src=state_url, height="370", width="350", style={'framBorder':'0'})
+        state_report = html.Iframe(src=state_url, height="370", width="350", style={'frameBorder':'0'})
     else:
         df = df_global.loc[df_global['location']==country_selected].reset_index()
 
@@ -440,63 +436,70 @@ def update_plots(state_selected, country_selected, n):
             state_report = html.Div([
                 html.H1(
                     children=[
-                        html.Strong("Vaccinated (1+ Dose): "), 
-                        html.Span("{pct}%".format(pct=total_vax_pct if total_vax_pct > 0.0 else '--'))
+                        html.Strong("Vaccinated (1+ Dose): ", style={'color':'#fff'}), 
+                        html.Span("{pct}%".format(pct=total_vax_pct if total_vax_pct > 0.0 else '--'), style={'color':'#fff'})
                     ], 
                     style={'margin':'10px'}
                 ),
                 html.H1(
                     children=[
-                        html.Strong("Fully Vaccinated: "), 
-                        html.Span("{pct}%".format(pct=full_vax_pct if full_vax_pct > 0.0 else '--'))
+                        html.Strong("Fully Vaccinated: ", style={'color':'#fff'}), 
+                        html.Span("{pct}%".format(pct=full_vax_pct if full_vax_pct > 0.0 else '--'), style={'color':'#fff'})
                     ], 
                     style={'margin':'10px'}
                 ),
                 html.H1(
                     children=[
-                        html.Strong("Boosted: "), 
-                        html.Span("{pct}%".format(pct=boosted_pct if boosted_pct>0.0 else "--"))
+                        html.Strong("Boosted: ", style={'color':'#fff'}), 
+                        html.Span("{pct}%".format(pct=boosted_pct if boosted_pct>0.0 else "--"), style={'color':'#fff'})
                     ], 
                     style={'margin-bottom':'0px'}
                 )
-            ], style={'border':'solid black 1px', 'border-radius':'25px', 'text-align':'center', 'top':'50%', 'transform':'translateY(50%)'})
+            ], style={'border':'solid white 1px', 'border-radius':'25px', 'text-align':'center', 'top':'50%', 'transform':'translateY(50%)'})
 
     plot1={
-        'data':[trace1],
+        'data':[trace1, trace2],
         'layout': dict(
-            title='Change in Daily Cases (Linear)',
-            xaxis={'title': 'Date'},
-            yaxis={'title': 'New Cases', 'automargin':'true'},
+            title={'text':'Change in Daily Cases (Linear)','font':{'color':'#fff'}},
+            xaxis={'title': 'Date', 'color':'#fff'},
+            yaxis={'title': {'text':'New Cases', 'standoff':10}, 'automargin':True, 'color':'#fff'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1},
+            legend={'x': 0, 'y': 1, 'font':{'color':'#fff'}},
+            plot_bgcolor='#121212',
+            paper_bgcolor='#121212',
+            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
             hovermode='closest'
         )
 
     }
-    plot1['data'].append(trace2)
 
     plot2={
-        'data':[trace3],
+        'data':[trace3, trace4],
         'layout': dict(
-            title='Change in Daily Deaths (Linear)',
-            xaxis={'title': 'Date'},
-            yaxis={'title': 'New Deaths', 'automargin':'true'},
+            title={'text':'Change in Daily Deaths (Linear)', 'font':{'color':'#fff'}},
+            xaxis={'title': 'Date', 'color':'#fff'},
+            yaxis={'title': {'text':'New Deaths', 'standoff':10}, 'automargin':True,'color':'#fff'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1},
+            legend={'x': 0, 'y': 1,'font':{'color':'#fff'}},
+            plot_bgcolor='#121212',
+            paper_bgcolor='#121212',
+            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
             hovermode='closest'
         )
 
     }
-    plot2['data'].append(trace4)
 
     plot3={
         'data':[trace5, trace7],
         'layout': dict(
-            title='Deaths vs. Vaccination Rate',
-            xaxis={'title':'Vaccination Rate'},
-            yaxis={'title':'Deaths per 100k (Over Last Two Weeks)', 'automargin':True},
+            title={'text':'Deaths vs. Vaccination Rate', 'font':{'color':'#fff'}},
+            xaxis={'title':'Vaccination Rate', 'color':'#fff'},
+            yaxis={'title':{'text':'Deaths per 100k (Over Last Two Weeks)', 'standoff':10}, 'automargin':True, 'color':'#fff'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
+            plot_bgcolor='#121212',
+            paper_bgcolor='#121212',
             showlegend=False,
+            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
             hovermode='closest'
         )
 
@@ -505,29 +508,19 @@ def update_plots(state_selected, country_selected, n):
     plot4={
         'data':[trace5],
         'layout': dict(
-            title='Cumulative Cases vs Change in Cases (loglog)',
-            xaxis={'title': 'Cumulative Cases (log)', 'type':'log'},
-            yaxis={'title': 'Change in Cases (log)', 'type':'log', 'automargin':'true'},
+            title={'text':'Cumulative Cases vs Change in Cases (loglog)', 'font':{'color':'#fff'}},
+            xaxis={'title': 'Cumulative Cases (log)', 'type':'log', 'color':'#fff'},
+            yaxis={'title': {'text':'Change in Cases (log)','standoff':6}, 'type':'log', 'automargin':True, 'color':'#fff'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1},
+            legend={'x': 0, 'y': 1, 'font':{'color':'#fff'}},
+            plot_bgcolor='#121212',
+            paper_bgcolor='#121212',
+            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
             hovermode='closest'
         )
 
     }
-    """
-    plot4={
-        'data':[trace6],
-        'layout': dict(
-            title='Change in Daily Cases per 100k (Linear)',
-            xaxis={'title': 'Date'},
-            yaxis={'title': 'New Cases (per 100k)', 'automargin':'true'},
-            margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1},
-            hovermode='closest'
-        )
 
-    }
-    """
     if (country_selected == "United States"):
         if plot3['data'][0].y.size > 0:
             plot3['layout']['yaxis'].update(range=[0,1.1*max(plot3['data'][0].y)])
