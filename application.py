@@ -5,6 +5,7 @@ import datetime as dt
 # from dash.dependencies import Input, Output
 import pandas as pd
 import plotly.graph_objs as go
+import plotly.io as pio
 from pytz import timezone
 from urllib.request import Request, urlopen
 import numpy as np
@@ -70,6 +71,31 @@ us_state_abbrev = {
 }
 
 abbrev_us_state = dict(map(reversed, us_state_abbrev.items()))
+
+dark_template = dict(
+  layout = go.Layout(
+    plot_bgcolor='#121212', 
+    paper_bgcolor='#121212',
+    xaxis={
+      'color':'#fff'
+    },
+    yaxis={
+      'color':'#fff',
+      'automargin':True
+    },
+    legend={
+      'font':{'color':'#fff'}
+    },
+    title={
+      'font':{'color':'#fff'}
+    },
+    hoverlabel={
+      'bordercolor':'#fff',
+      'font':{'color':'#fff'}, 
+      'namelength':-1
+    }
+  )
+)
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', 'dropdown.css']
 app = Dash(
     __name__,
@@ -77,6 +103,7 @@ app = Dash(
 )
 application = app.server
 app.title = 'Covid Graphs'
+app.update_title = None
 
 us_pop = pd.read_csv('csvData.csv')
 global_pop = pd.read_csv('countryPop.csv')
@@ -211,69 +238,67 @@ def unique_sorted_values(array):
     unique.sort()
     return unique
 
-
-
 sorted_states = unique_sorted_values(df_us['state'])
 sorted_states = [abbrev_us_state[state] for state in sorted_states]
 sorted_countries = unique_sorted_values(df_global['location'])
 
 app.layout = html.Div([
-    dcc.Interval(
-      id='interval-component',
-      interval=60*60*1000,
-      n_intervals=0
-    ),
-    html.Div([
-        html.Label('Country', style={'color':'#fff'}),
-        dcc.Dropdown(
-            id='country-selector',
-            options=[{'label': i, 'value': i} for i in sorted_countries],
-            value = 'United States'
-        )
-    ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
-    html.Div([
-        html.Label('State', style={'color':'#fff'}),
-        dcc.Dropdown(
-            id='state-selector',
-            options=[{'label': i, 'value': i} for i in sorted_states],
-            placeholder = "Select a State"
-        )
-    ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
-    html.Div([
-        html.Div([
-            dcc.Loading(
-                id="loading-cases",
-                type="graph",
-                children=dcc.Graph(id='cases-vs-days-lin')
-            )
-        ], className="six columns"),
-        html.Div([
-            dcc.Loading(
-                id="loading-deaths",
-                type="graph",
-                children=dcc.Graph(id='deaths-vs-days'),
-            )
-        ], className="six columns")
-    ], className="row"),
+  dcc.Interval(
+    id='interval-component',
+    interval=60*60*1000,
+    n_intervals=0
+  ),
+  html.Div([
+      html.Label('Country', style={'color':'#fff'}),
+      dcc.Dropdown(
+          id='country-selector',
+          options=[{'label': i, 'value': i} for i in sorted_countries],
+          value = 'United States',
+      )
+  ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
+  html.Div([
+      html.Label('State', style={'color':'#fff'}),
+      dcc.Dropdown(
+          id='state-selector',
+          options=[{'label': i, 'value': i} for i in sorted_states],
+          placeholder = "Select a State",
+      )
+  ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
+  html.Div([
+      html.Div([
+          dcc.Loading(
+              id="loading-cases",
+              type="graph",
+              children=dcc.Graph(id='cases-vs-days-lin')
+          )
+      ], className="six columns"),
+      html.Div([
+          dcc.Loading(
+              id="loading-deaths",
+              type="graph",
+              children=dcc.Graph(id='deaths-vs-days'),
+          )
+      ], className="six columns")
+  ], className="row"),
 
-    html.Div([
-        html.Div([
-            dcc.Loading(
-                id="loading-vax",
-                type="graph",
-                children=dcc.Graph(id='vax-vs-deaths'),
-            )
-        ], className="six columns"),
-        html.Div([
-            dcc.Loading(
-                id="loading-report",
-                type="dot",
-                children = html.Div(id='state-report', style={'text-align':'center', 'width':'auto'}),
-            )
-        ], className="six columns", style={'display':'flex', 'justify-content':'center'}),
-    ], className="row", style={'margin-top': '35px', 'margin-bottom':'10px'}),
-    html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election.", style={'color':'#9b9b9b'}),
-    html.Div(id='time-value', style={'color':'#9b9b9b'})
+  html.Div([
+      html.Div([
+          dcc.Loading(
+              id="loading-vax",
+              type="graph",
+              children=dcc.Graph(id='vax-vs-deaths'),
+          )
+      ], className="six columns"),
+      html.Div([
+          dcc.Loading(
+              id="loading-report",
+              type="dot",
+              children = html.Div(id='state-report', style={'text-align':'center', 'width':'auto'}),
+          )
+      ], className="six columns", style={'display':'flex', 'justify-content':'center'}),
+  ], className="row", style={'margin-top': '35px', 'margin-bottom':'10px'}),
+  html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election.", style={'color':'#9b9b9b'}),
+  html.Div(id='time-value', style={'color':'#9b9b9b'}),
 ])
 
 @app.callback(
@@ -463,30 +488,26 @@ def update_plots(state_selected, country_selected, n):
     plot1={
         'data':[trace1, trace2],
         'layout': dict(
-            title={'text':'Change in Daily Cases (Linear)','font':{'color':'#fff'}},
-            xaxis={'title': 'Date', 'color':'#fff'},
-            yaxis={'title': {'text':'New Cases', 'standoff':10}, 'automargin':True, 'color':'#fff'},
+            title={'text':'Change in Daily Cases (Linear)'},
+            xaxis={'title': 'Date'},
+            yaxis={'title': {'text':'New Cases', 'standoff':10}},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1, 'font':{'color':'#fff'}},
-            plot_bgcolor='#121212',
-            paper_bgcolor='#121212',
-            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
+            legend={'x': 0, 'y': 1},
+            template=dark_template,
             hovermode='closest'
         )
-
     }
+
 
     plot2={
         'data':[trace3, trace4],
         'layout': dict(
-            title={'text':'Change in Daily Deaths (Linear)', 'font':{'color':'#fff'}},
-            xaxis={'title': 'Date', 'color':'#fff'},
-            yaxis={'title': {'text':'New Deaths', 'standoff':10}, 'automargin':True,'color':'#fff'},
+            title={'text':'Change in Daily Deaths (Linear)'},
+            xaxis={'title': 'Date'},
+            yaxis={'title': {'text':'New Deaths', 'standoff':10}},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1,'font':{'color':'#fff'}},
-            plot_bgcolor='#121212',
-            paper_bgcolor='#121212',
-            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
+            legend={'x': 0, 'y': 1},
+            template=dark_template,
             hovermode='closest'
         )
 
@@ -495,14 +516,12 @@ def update_plots(state_selected, country_selected, n):
     plot3={
         'data':[trace5, trace7],
         'layout': dict(
-            title={'text':'Deaths vs. Vaccination Rate', 'font':{'color':'#fff'}},
-            xaxis={'title':'Vaccination Rate', 'color':'#fff'},
-            yaxis={'title':{'text':'Deaths per 100k (Over Last Two Weeks)', 'standoff':10}, 'automargin':True, 'color':'#fff'},
+            title={'text':'Deaths vs. Vaccination Rate'},
+            xaxis={'title':'Vaccination Rate'},
+            yaxis={'title':{'text':'Deaths per 100k (Over Last Two Weeks)', 'standoff':10}},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            plot_bgcolor='#121212',
-            paper_bgcolor='#121212',
             showlegend=False,
-            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
+            template=dark_template,
             hovermode='closest'
         )
 
@@ -511,14 +530,12 @@ def update_plots(state_selected, country_selected, n):
     plot4={
         'data':[trace5],
         'layout': dict(
-            title={'text':'Cumulative Cases vs Change in Cases (loglog)', 'font':{'color':'#fff'}},
+            title={'text':'Cumulative Cases vs Change in Cases (loglog)'},
             xaxis={'title': 'Cumulative Cases (log)', 'type':'log', 'color':'#fff'},
-            yaxis={'title': {'text':'Change in Cases (log)','standoff':6}, 'type':'log', 'automargin':True, 'color':'#fff'},
+            yaxis={'title': {'text':'Change in Cases (log)','standoff':6}, 'type':'log'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
-            legend={'x': 0, 'y': 1, 'font':{'color':'#fff'}},
-            plot_bgcolor='#121212',
-            paper_bgcolor='#121212',
-            hoverlabel={'bordercolor':'white','font':{'color':'white'}, 'namelength':-1},
+            legend={'x': 0, 'y': 1},
+            template=dark_template,
             hovermode='closest'
         )
 
