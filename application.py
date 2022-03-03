@@ -273,7 +273,7 @@ app.layout = html.Div([
     ], className="row", style={'margin-top': '35px', 'margin-bottom':'10px'}),
     html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election.", style={'color':'#9b9b9b'}),
     html.Div(id='time-value', style={'color':'#9b9b9b'})
-], style={'background-color':'#121212'})
+])
 
 @app.callback(
     Output('time-value', 'children'),
