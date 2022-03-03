@@ -242,14 +242,14 @@ app.layout = html.Div([
         html.Div([
             dcc.Loading(
                 id="loading-cases",
-                type="circle",
+                type="graph",
                 children=dcc.Graph(id='cases-vs-days-lin')
             )
         ], className="six columns"),
         html.Div([
             dcc.Loading(
                 id="loading-deaths",
-                type="circle",
+                type="graph",
                 children=dcc.Graph(id='deaths-vs-days'),
             )
         ], className="six columns")
@@ -259,7 +259,7 @@ app.layout = html.Div([
         html.Div([
             dcc.Loading(
                 id="loading-vax",
-                type="circle",
+                type="graph",
                 children=dcc.Graph(id='vax-vs-deaths'),
             )
         ], className="six columns"),
