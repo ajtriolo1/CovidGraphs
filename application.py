@@ -348,10 +348,11 @@ def update_plots(state_selected, country_selected, n):
         trace7=go.Scatter(
             x=df_county['VaxPct'],
             y=df_county['curve_fit'],
-            mode='lines'
+            mode='lines',
+            name='Trend'
         )
         state_url = "https://covidactnow.org/embed/us/" + us_state_abbrev[state_selected].lower()
-        state_report = html.Iframe(src=state_url, height="370", width="350", style={'frameBorder':'0'})
+        state_report = html.Iframe(src=state_url, height="370", width="350", style={'frameBorder':0, 'margin-top':30})
     else:
         df = df_global.loc[df_global['location']==country_selected].reset_index()
 
@@ -423,7 +424,8 @@ def update_plots(state_selected, country_selected, n):
         trace7=go.Scatter(
             x=df_state['VaxPct'],
             y=df_state['curve_fit'],
-            mode='lines'
+            mode='lines',
+            name='Trend'
         )
         if(country_selected == "United States"):
             state_report = html.Iframe(src="https://covidactnow.org/embed/risk/us/", style={'height': '450px', 'width':'460px','scrolling': 'no'})
