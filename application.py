@@ -81,7 +81,6 @@ dark_template = dict(
     },
     yaxis={
       'color':'#fff',
-      'automargin':True
     },
     legend={
       'font':{'color':'#fff'}
@@ -96,6 +95,7 @@ dark_template = dict(
     }
   )
 )
+
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css', 'dropdown.css']
 app = Dash(
     __name__,
@@ -249,19 +249,21 @@ app.layout = html.Div([
     n_intervals=0
   ),
   html.Div([
-      html.Label('Country', style={'color':'#fff'}),
+      html.Label('Country', id='country-label', style={'color':'#fff'}),
       dcc.Dropdown(
           id='country-selector',
           options=[{'label': i, 'value': i} for i in sorted_countries],
           value = 'United States',
+          className='dark'
       )
   ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
   html.Div([
-      html.Label('State', style={'color':'#fff'}),
+      html.Label('State', id='state-label', style={'color':'#fff'}),
       dcc.Dropdown(
           id='state-selector',
           options=[{'label': i, 'value': i} for i in sorted_states],
           placeholder = "Select a State",
+          className='dark'
       )
   ], className="six columns", style={'width': '48%', 'margin-bottom': '15px'}),
   html.Div([
@@ -269,7 +271,7 @@ app.layout = html.Div([
           dcc.Loading(
               id="loading-cases",
               type="graph",
-              children=dcc.Graph(id='cases-vs-days-lin')
+              children=[dcc.Graph(id='cases-vs-days-lin')]
           )
       ], className="six columns"),
       html.Div([
@@ -299,7 +301,43 @@ app.layout = html.Div([
   ], className="row", style={'margin-top': '35px', 'margin-bottom':'10px'}),
   html.I("Note: Color of markers on \"Deaths vs. Vaccination Rate\" graph is associated with how each state/county voted in the 2020 presidential election.", style={'color':'#9b9b9b'}),
   html.Div(id='time-value', style={'color':'#9b9b9b'}),
+  html.Button('Light', id='theme-selector', style={'color':'white','position':'fixed', 'right':10, 'bottom':10}),
+  html.Div(id='placeholder', style={'display':'none'}),
+  html.Div(id='theme', key='dark', style={'display':'none'})
 ])
+
+app.clientside_callback(
+  """
+  function(n_clicks){
+    if (n_clicks%2 === 0 || n_clicks === undefined){
+      document.body.style.backgroundColor='#121212';
+      document.getElementById('theme-selector').innerText = 'Light'
+      document.getElementById('theme-selector').style.color='white'
+      document.getElementById('country-label').style.color='#fff'
+      document.getElementById('state-label').style.color='#fff'
+    }else{
+      document.body.style.backgroundColor='#fff';
+      document.getElementById('theme-selector').innerText = 'Dark'
+      document.getElementById('theme-selector').style.color='black'
+      document.getElementById('country-label').style.color='black'
+      document.getElementById('state-label').style.color='black'
+    }
+    return null;
+  }
+  """,
+  Output('placeholder', 'children'),
+  [Input('theme-selector', 'n_clicks')]
+)
+
+@app.callback(
+  [Output('country-selector', 'className'), Output('state-selector', 'className'), Output('theme', 'key')],
+  [Input('theme-selector', 'n_clicks'), Input('country-selector', 'className')]
+)
+def switch_theme(n_clicks, class1):
+  if class1 == 'dark' and int(n_clicks or 0) > 0:
+    return ['light', 'light', 'light']
+  else:
+    return ['dark', 'dark', 'dark']
 
 @app.callback(
     Output('time-value', 'children'),
@@ -319,8 +357,8 @@ def enable_state(country_selected):
 
 @app.callback(
     [Output('cases-vs-days-lin', 'figure'), Output('deaths-vs-days', 'figure'), Output('vax-vs-deaths', 'figure'), Output('state-report', 'children')],
-    [Input('state-selector', 'value'), Input('country-selector', 'value'), Input('interval-component', 'n_intervals')])
-def update_plots(state_selected, country_selected, n):
+    [Input('state-selector', 'value'), Input('country-selector', 'value'), Input('interval-component', 'n_intervals'), Input('theme', 'key')])
+def update_plots(state_selected, country_selected, n, theme):
     if((state_selected != None) & (country_selected == 'United States')):
         df = df_us[df_us['state'] == us_state_abbrev[state_selected]]
         df['newCases'] = df['actuals.newCases']
@@ -490,10 +528,10 @@ def update_plots(state_selected, country_selected, n):
         'layout': dict(
             title={'text':'Change in Daily Cases (Linear)'},
             xaxis={'title': 'Date'},
-            yaxis={'title': {'text':'New Cases', 'standoff':10}},
+            yaxis={'title': {'text':'New Cases', 'standoff':10}, 'automargin':True},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
             legend={'x': 0, 'y': 1},
-            template=dark_template,
+            template=dark_template if theme=='dark' else '',
             hovermode='closest'
         )
     }
@@ -504,10 +542,10 @@ def update_plots(state_selected, country_selected, n):
         'layout': dict(
             title={'text':'Change in Daily Deaths (Linear)'},
             xaxis={'title': 'Date'},
-            yaxis={'title': {'text':'New Deaths', 'standoff':10}},
+            yaxis={'title': {'text':'New Deaths','standoff':10},'automargin':True},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
             legend={'x': 0, 'y': 1},
-            template=dark_template,
+            template=dark_template if theme == 'dark' else '',
             hovermode='closest'
         )
 
@@ -518,10 +556,10 @@ def update_plots(state_selected, country_selected, n):
         'layout': dict(
             title={'text':'Deaths vs. Vaccination Rate'},
             xaxis={'title':'Vaccination Rate'},
-            yaxis={'title':{'text':'Deaths per 100k (Over Last Two Weeks)', 'standoff':10}},
+            yaxis={'title':{'text':'Deaths per 100k (Over Last Two Weeks)', 'standoff':10},'automargin':True},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
             showlegend=False,
-            template=dark_template,
+            template=dark_template if theme == 'dark' else '',
             hovermode='closest'
         )
 
@@ -532,10 +570,10 @@ def update_plots(state_selected, country_selected, n):
         'layout': dict(
             title={'text':'Cumulative Cases vs Change in Cases (loglog)'},
             xaxis={'title': 'Cumulative Cases (log)', 'type':'log', 'color':'#fff'},
-            yaxis={'title': {'text':'Change in Cases (log)','standoff':6}, 'type':'log'},
+            yaxis={'title': {'text':'Change in Cases (log)','standoff':6}, 'automargin':True, 'type':'log'},
             margin={'l': 40, 'b': 40, 't': 40, 'r': 10},
             legend={'x': 0, 'y': 1},
-            template=dark_template,
+            template=dark_template if theme == 'dark' else '',
             hovermode='closest'
         )
 

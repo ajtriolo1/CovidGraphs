@@ -3,34 +3,34 @@ body {
   margin: 8px;
 }
 
-.Select-control {
+.dark .Select-control {
   background-color: #222 !important;
 }
 
-.Select.is-focused > .Select-control {
+.dark .Select.is-focused > .Select-control {
   background-color: #222;
 }
 
-.Select.is-disabled > .Select-control {
+.dark .Select.is-disabled > .Select-control {
   border-color: #222;
   color: white;
 }
 
-.Select-value-label {
+.dark .Select-value-label {
   color: white !important;
 }
 
-.VirtualizedSelectOption {
+.dark .VirtualizedSelectOption {
   background-color: #222;
   color: white;
 }
 
-.VirtualizedSelectFocusedOption {
+.dark .VirtualizedSelectFocusedOption {
   background-color: #222;
   opacity: 0.7;
 }
 
-.Select.is-focused:not(.is-open) > .Select-control {
+.dark .Select.is-focused:not(.is-open) > .Select-control {
   background-color: #222;
   border-color: white;
   box-shadow: none;
